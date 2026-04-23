@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Study Lab — Computer Vision Interactive Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --panel: #16161f;
+    --border: #2a2a3a;
+    --accent: #00e5ff;
+    --accent2: #ff3c6e;
+    --accent3: #a3ff4b;
+    --text: #e8e8f0;
+    --muted: #7878a0;
+    --code: #Space Mono;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: linear-gradient(to right, rgba(0,229,255,0.05), transparent);
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .logo span { color: var(--accent); }
+
+  .progress-bar-wrap {
+    flex: 1;
+    max-width: 320px;
+    margin: 0 2rem;
+  }
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 0.1em;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* LAYOUT */
+  .layout {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 80px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .sidebar-section {
+    margin-bottom: 0.5rem;
+  }
+  .sidebar-cat {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    padding: 0.5rem 1.5rem 0.3rem;
+    text-transform: uppercase;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-left: 3px solid transparent;
+    color: var(--muted);
+  }
+  .sidebar-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .sidebar-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0,229,255,0.06);
+  }
+  .sidebar-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .sidebar-item.done { color: var(--accent3); }
+  .sidebar-item.done .dot { background: var(--accent3); }
+
+  /* MAIN CONTENT */
+  main {
+    padding: 2rem 3rem;
+    max-width: 900px;
+  }
+
+  /* TOPIC PANEL */
+  .topic {
+    display: none;
+    animation: fadeSlide 0.3s ease;
+  }
+  .topic.active { display: block; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .topic-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .topic-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+
+  /* CARDS */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-icon { font-size: 1.6rem; margin-bottom: 0.7rem; }
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+  .card-body {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ANALOGY BOX */
+  .analogy {
+    background: linear-gradient(135deg, rgba(0,229,255,0.07), rgba(163,255,75,0.05));
+    border: 1px solid rgba(0,229,255,0.25);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .analogy::before {
+    content: '💡 ANALOGY';
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .analogy p { font-size: 0.9rem; line-height: 1.7; }
+
+  /* FORMULA */
+  .formula {
+    background: #0d0d16;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+  }
+
+  /* PRO/CON TABLE */
+  .procon {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .pro, .con {
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .pro {
+    background: rgba(163,255,75,0.06);
+    border: 1px solid rgba(163,255,75,0.25);
+  }
+  .con {
+    background: rgba(255,60,110,0.06);
+    border: 1px solid rgba(255,60,110,0.25);
+  }
+  .pro-title { color: var(--accent3); font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
+  .con-title { color: var(--accent2); font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
+  .pro li, .con li {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.6;
+    list-style: none;
+    padding-left: 1rem;
+    position: relative;
+  }
+  .pro li::before { content: '✓'; position: absolute; left: 0; color: var(--accent3); }
+  .con li::before { content: '✗'; position: absolute; left: 0; color: var(--accent2); }
+
+  /* STEP LIST */
+  .steps { margin-bottom: 1.5rem; }
+  .step {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    min-width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-text { font-size: 0.85rem; line-height: 1.6; padding-top: 4px; }
+
+  /* QUIZ */
+  .quiz-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+  }
+  .quiz-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--accent2);
+  }
+  .quiz-q {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  .quiz-opts {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .quiz-opt {
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+    background: var(--surface);
+    text-align: left;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .quiz-opt.correct { border-color: var(--accent3); background: rgba(163,255,75,0.1); color: var(--accent3); }
+  .quiz-opt.wrong { border-color: var(--accent2); background: rgba(255,60,110,0.1); color: var(--accent2); }
+  .quiz-opt:disabled { cursor: default; }
+  .quiz-feedback {
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--muted);
+    min-height: 1.2rem;
+  }
+  .quiz-nav {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #00c8e0; border-color: #00c8e0; color: var(--bg); }
+
+  /* COMPARISON TABLE */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .compare-table th {
+    background: rgba(0,229,255,0.1);
+    color: var(--accent);
+    padding: 0.7rem 1rem;
+    text-align: left;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); color: var(--text); }
+  .compare-table td:first-child { color: var(--text); font-weight: 600; }
+
+  /* VISUAL DIAGRAM */
+  .diagram {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .diagram svg { max-width: 100%; }
+
+  /* FLOW ARROW */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+  }
+  .pipe-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: border-color 0.2s;
+  }
+  .pipe-box:hover { border-color: var(--accent); }
+  .pipe-arrow {
+    color: var(--muted);
+    font-size: 1rem;
+    padding: 0 0.3rem;
+    flex-shrink: 0;
+  }
+  .pipe-box.highlight { border-color: var(--accent); color: var(--accent); }
+
+  /* FLIPCARD */
+  .flipcard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .flipcard {
+    perspective: 600px;
+    height: 130px;
+    cursor: pointer;
+  }
+  .flipcard-inner {
+    width: 100%; height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+    position: relative;
+  }
+  .flipcard:hover .flipcard-inner,
+  .flipcard.flipped .flipcard-inner { transform: rotateY(180deg); }
+  .flipcard-front, .flipcard-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: 1px solid var(--border);
+  }
+  .flipcard-front {
+    background: var(--panel);
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .flipcard-front .icon { font-size: 1.5rem; }
+  .flipcard-back {
+    background: linear-gradient(135deg, var(--panel), rgba(0,229,255,0.08));
+    border-color: var(--accent);
+    transform: rotateY(180deg);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* SCORE */
+  .score-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    border: 1px solid var(--accent3);
+    color: var(--accent3);
+    background: rgba(163,255,75,0.08);
+  }
+
+  /* NAV BUTTONS */
+  .topic-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* SECTION DIVIDER */
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 1.5rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    main { padding: 1.5rem; }
+    .procon { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CV<span>Lab</span></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label">PROGRESS — <span id="pct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="fill"></div></div>
+  </div>
+  <div class="score-badge">Score: <span id="score">0</span>/<span id="total">0</span></div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-cat">Background Subtraction</div>
+      <div class="sidebar-item active" onclick="goTo(0)"><span class="dot"></span>Median Filter</div>
+      <div class="sidebar-item" onclick="goTo(1)"><span class="dot"></span>Advantages & Limits</div>
+      <div class="sidebar-item" onclick="goTo(2)"><span class="dot"></span>GMM Modeling</div>
+      <div class="sidebar-item" onclick="goTo(3)"><span class="dot"></span>KNN Modeling</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-cat">Object Detection</div>
+      <div class="sidebar-item" onclick="goTo(4)"><span class="dot"></span>FgSegNet</div>
+      <div class="sidebar-item" onclick="goTo(5)"><span class="dot"></span>SSD Detectors</div>
+      <div class="sidebar-item" onclick="goTo(6)"><span class="dot"></span>YOLO vs SSD</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-cat">Generative Models</div>
+      <div class="sidebar-item" onclick="goTo(7)"><span class="dot"></span>GAN Basics</div>
+      <div class="sidebar-item" onclick="goTo(8)"><span class="dot"></span>GAN Variants</div>
+      <div class="sidebar-item" onclick="goTo(9)"><span class="dot"></span>VAE</div>
+      <div class="sidebar-item" onclick="goTo(10)"><span class="dot"></span>Diffusion Models</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-cat">Motion & Flow</div>
+      <div class="sidebar-item" onclick="goTo(11)"><span class="dot"></span>Optical Flow</div>
+      <div class="sidebar-item" onclick="goTo(12)"><span class="dot"></span>Lucas-Kanade</div>
+      <div class="sidebar-item" onclick="goTo(13)"><span class="dot"></span>FlowNet</div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ====== TOPIC 0: MEDIAN FILTER ====== -->
+    <div class="topic active" id="topic-0">
+      <div class="topic-tag">Background Subtraction · 01</div>
+      <h1 class="topic-title">Median Filter</h1>
+
+      <div class="analogy">
+        <p>Imagine you're filming a busy road. You want to know what the road looks like <em>without any cars</em>. The Median Filter collects a stack of <strong>n frames</strong> and, for each pixel, takes the <strong>middle (median) value</strong>. Since cars move, the road itself appears most of the time — so it "wins" the median, and cars get filtered out.</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📸</div>
+          <div class="card-title">Estimated Background</div>
+          <div class="card-body">Median of n frames per pixel. n=20 gives a rough background; n=50 gives a cleaner, more stable one.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎭</div>
+          <div class="card-title">Foreground Mask</div>
+          <div class="card-body">Pixels that differ from the background model beyond a threshold <em>Th</em> are marked as foreground (moving objects).</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔢</div>
+          <div class="card-title">Detection Rule</div>
+          <div class="card-body">|I(x,y,t) − B(x,y,t)| > Th <br>If true → foreground; else → background.</div>
+        </div>
+      </div>
+
+      <h3>How n affects quality</h3>
+      <div class="procon">
+        <div class="pro">
+          <div class="pro-title">✦ Higher n (e.g. 50)</div>
+          <ul>
+            <li>Cleaner background estimate</li>
+            <li>More frames to average over</li>
+            <li>Better handles slow objects</li>
+          </ul>
+        </div>
+        <div class="con">
+          <div class="con-title">✦ Lower n (e.g. 20)</div>
+          <ul>
+            <li>Noisier background</li>
+            <li>Faster to compute</li>
+            <li>Less memory needed</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">What does the Median Filter use to estimate the background?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">The average (mean) of all frames</button>
+          <button class="quiz-opt" onclick="answer(this,true)">The median pixel value across n frames</button>
+          <button class="quiz-opt" onclick="answer(this,false)">The brightest pixel in each frame</button>
+          <button class="quiz-opt" onclick="answer(this,false)">The most recent frame only</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-0"></div>
+      </div>
+
+      <div class="topic-nav">
+        <div></div>
+        <button class="btn btn-primary" onclick="goTo(1)">Next: Advantages & Limits →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 1: ADVANTAGES & LIMITS ====== -->
+    <div class="topic" id="topic-1">
+      <div class="topic-tag">Background Subtraction · 02</div>
+      <h1 class="topic-title">Advantages vs. Limits</h1>
+
+      <div class="analogy">
+        <p>These simple methods (median, mean, frame differencing) are like a simple security guard who only knows "this is what the room normally looks like." They work great in ideal conditions, but fail if the lighting changes, objects move slowly, or there's a <strong>bimodal background</strong> (like a flickering screen or waving trees).</p>
+      </div>
+
+      <div class="procon">
+        <div class="pro">
+          <div class="pro-title">ADVANTAGES</div>
+          <ul>
+            <li>Extremely easy to implement</li>
+            <li>Fast computation</li>
+            <li>Background model adapts over time</li>
+          </ul>
+        </div>
+        <div class="con">
+          <div class="con-title">DISADVANTAGES</div>
+          <ul>
+            <li>Frame differencing: accuracy depends on object speed + frame rate</li>
+            <li>Mean/median: high memory needs</li>
+            <li>Single global threshold Th — not adaptive to time</li>
+            <li>Fails with bimodal background</li>
+            <li>Fails with slow-moving objects</li>
+            <li>Fails if lighting changes over time</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>The Core Problem</h3>
+      <div class="formula">|I(x,y,t) − B(x,y,t)| > Th</div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Problem 1: One Global Th</div>
+          <div class="card-body">The same threshold for all pixels. A dark corner and a bright window get the same Th — that's a bad idea.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">⏰</div>
+          <div class="card-title">Problem 2: Th is Fixed</div>
+          <div class="card-body">Th doesn't change with time t. If the sun sets and the whole scene darkens, Th can't adapt.</div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">Why do these simple background subtraction methods fail when lighting changes over time?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">They use too many frames</button>
+          <button class="quiz-opt" onclick="answer(this,false)">The background model updates too fast</button>
+          <button class="quiz-opt" onclick="answer(this,true)">The threshold Th is not a function of time t</button>
+          <button class="quiz-opt" onclick="answer(this,false)">They cannot detect foreground at all</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-1"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(0)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(2)">Next: GMM Modeling →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 2: GMM ====== -->
+    <div class="topic" id="topic-2">
+      <div class="topic-tag">Background Subtraction · 03</div>
+      <h1 class="topic-title">Gaussian Mixture Model (GMM)</h1>
+
+      <div class="analogy">
+        <p>Imagine each pixel as a person with a memory. Instead of just "what's the average color?", they remember <strong>several typical color states</strong> — like "usually it's the gray road, sometimes a car's shadow passes." Each state is a Gaussian bell curve. The model picks whichever Gaussian best matches the current pixel and uses the most stable, frequent ones as the background.</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔔</div>
+          <div class="card-title">Why a Mixture?</div>
+          <div class="card-body">Multiple surfaces can appear at a single pixel over time (road, car shadow, pedestrian). Each gets its own Gaussian.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌅</div>
+          <div class="card-title">Why Adaptive?</div>
+          <div class="card-body">Lighting conditions change. The Gaussians update their mean, variance, and weight as new frames arrive.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏷️</div>
+          <div class="card-title">Background Decision</div>
+          <div class="card-body">Gaussians with <strong>high weight + low variance</strong> = background. They appear often and stay stable.</div>
+        </div>
+      </div>
+
+      <h3>Update Rules</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">New pixel arrives. Check if it matches an existing Gaussian (within 2.5σ).</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">If match found: update that Gaussian's mean, variance, and weight.</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">If no match: replace the weakest Gaussian with a new one at the pixel value.</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Rank Gaussians by weight/variance ratio. Top ones = background.</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-text">Pixel doesn't match background Gaussians → classified as foreground.</div></div>
+      </div>
+
+      <h3>Gaussian Reminder</h3>
+      <div class="formula">𝒩(x|μ, σ²) = 1/√(2πσ²) · exp(−(x−μ)²/2σ²)</div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">In GMM, which Gaussians are considered to represent the background?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">Those with the highest variance</button>
+          <button class="quiz-opt" onclick="answer(this,true)">Those with high weight and low variance</button>
+          <button class="quiz-opt" onclick="answer(this,false)">The most recently created ones</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Those matching every frame perfectly</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-2"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Next: KNN Modeling →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 3: KNN ====== -->
+    <div class="topic" id="topic-3">
+      <div class="topic-tag">Background Subtraction · 04</div>
+      <h1 class="topic-title">KNN Background Modeling</h1>
+
+      <div class="analogy">
+        <p>KNN is like asking your neighbors "is this normal?" For each pixel, you store the <strong>last n observed values</strong>. When a new pixel arrives, you find its K nearest historical values. If enough neighbors are close in color → it looks like background. If the new value is a stranger → it's foreground.</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📚</div>
+          <div class="card-title">Non-Parametric</div>
+          <div class="card-body">No assumption about distribution shape. More flexible than GMM which assumes Gaussian shape.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📏</div>
+          <div class="card-title">Distance-Based</div>
+          <div class="card-body">Uses Euclidean distance to find K nearest neighbors from the stored history of n pixel values.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">Adaptive Updates</div>
+          <div class="card-body">Old samples are replaced by new observations, so the model adapts to gradual scene changes.</div>
+        </div>
+      </div>
+
+      <h3>KNN vs GMM at a Glance</h3>
+      <table class="compare-table">
+        <tr><th>Feature</th><th>GMM</th><th>KNN</th></tr>
+        <tr><td>Model type</td><td>Parametric (Gaussians)</td><td>Non-parametric</td></tr>
+        <tr><td>Distribution assumption</td><td>Yes (Gaussian)</td><td>No</td></tr>
+        <tr><td>Memory</td><td>Fixed (K Gaussians/pixel)</td><td>Stores n raw samples</td></tr>
+        <tr><td>Adaptability</td><td>Good</td><td>Better for gradual change</td></tr>
+        <tr><td>Repetitive motion</td><td>Handles OK</td><td>Adapts well</td></tr>
+      </table>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">How does KNN classify a pixel as background?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">It matches a high-weight Gaussian</button>
+          <button class="quiz-opt" onclick="answer(this,false)">It has low pixel brightness</button>
+          <button class="quiz-opt" onclick="answer(this,true)">Enough of its K nearest historical neighbors are close in value</button>
+          <button class="quiz-opt" onclick="answer(this,false)">It hasn't changed in the last 10 frames</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-3"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Next: FgSegNet →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 4: FgSegNet ====== -->
+    <div class="topic" id="topic-4">
+      <div class="topic-tag">Object Detection · 05</div>
+      <h1 class="topic-title">FgSegNet — Deep Foreground Segmentation</h1>
+
+      <div class="analogy">
+        <p>Instead of hand-crafting rules, FgSegNet shows a CNN thousands of labeled video frames and lets it <em>learn what foreground looks like</em>. Think of it like training a specialist who has seen every possible lighting condition, shadow, and dynamic background — and can now instantly spot what's moving.</p>
+      </div>
+
+      <h3>Architecture Pipeline</h3>
+      <div class="pipeline">
+        <div class="pipe-box highlight">Input Frames</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Pretrained Encoder<br><small>VGG-16</small></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Multi-scale<br>Feature Fusion</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Decoder Network</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box highlight">Pixel-wise Mask</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <div class="card-title">Encoder (VGG-16)</div>
+          <div class="card-body">Pre-trained on ImageNet. Extracts rich spatial features at multiple scales from the input frames.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">Multi-scale Fusion</div>
+          <div class="card-body">Combines features from different resolution levels for better accuracy on small and large objects.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🗺️</div>
+          <div class="card-title">Decoder</div>
+          <div class="card-body">Upsamples features back to full resolution, generating a pixel-wise foreground/background mask.</div>
+        </div>
+      </div>
+
+      <div class="procon">
+        <div class="pro">
+          <div class="pro-title">STRENGTHS</div>
+          <ul>
+            <li>Handles illumination changes</li>
+            <li>Handles shadows and dynamic backgrounds</li>
+            <li>Highly accurate segmentation</li>
+          </ul>
+        </div>
+        <div class="con">
+          <div class="con-title">WEAKNESSES</div>
+          <ul>
+            <li>Computationally intensive</li>
+            <li>Needs labeled training frames per scene</li>
+            <li>More complex to implement</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">What backbone does FgSegNet use for feature extraction?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">ResNet-50</button>
+          <button class="quiz-opt" onclick="answer(this,true)">VGG-16 pretrained on ImageNet</button>
+          <button class="quiz-opt" onclick="answer(this,false)">MobileNet</button>
+          <button class="quiz-opt" onclick="answer(this,false)">BERT</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-4"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(3)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(5)">Next: SSD →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 5: SSD ====== -->
+    <div class="topic" id="topic-5">
+      <div class="topic-tag">Object Detection · 06</div>
+      <h1 class="topic-title">SSD — Single Shot Detector</h1>
+
+      <div class="analogy">
+        <p>SSD is like a detective who scans a scene at multiple zoom levels simultaneously — close up for small clues, wide angle for big patterns — and makes all decisions in one single pass. No second look needed. That's the "single shot" part.</p>
+      </div>
+
+      <h3>Architecture</h3>
+      <div class="pipeline">
+        <div class="pipe-box">Input<br>300×300</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box highlight">VGG-16<br>Base</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Conv8<br>38×38</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Conv9<br>19×19</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Conv10<br>10×10</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">5×5 → 3×3 → 1×1</div>
+      </div>
+
+      <h3>Feature Maps & Object Sizes</h3>
+      <table class="compare-table">
+        <tr><th>Layer</th><th>Size</th><th>Detects</th><th>Boxes</th><th>Total</th></tr>
+        <tr><td>conv4_3</td><td>38×38</td><td>Small objects</td><td>4</td><td>5,776</td></tr>
+        <tr><td>conv7</td><td>19×19</td><td>Medium</td><td>6</td><td>2,166</td></tr>
+        <tr><td>conv8_2</td><td>10×10</td><td>Medium-large</td><td>6</td><td>600</td></tr>
+        <tr><td>conv9_2</td><td>5×5</td><td>Large</td><td>6</td><td>150</td></tr>
+        <tr><td>conv10_2</td><td>3×3</td><td>Very large</td><td>4</td><td>36</td></tr>
+        <tr><td>conv11_2</td><td>1×1</td><td>Biggest</td><td>4</td><td>4</td></tr>
+      </table>
+      <div class="formula">Total default boxes = 8,732 (for 300×300 input)</div>
+
+      <h3>Non-Maximum Suppression (NMS)</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">SSD produces ~8,732 candidate boxes — most are redundant.</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Remove boxes with confidence &lt; 0.01.</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Apply class-specific NMS with IoU threshold = 0.45.</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Keep at most top-200 detections per class per image.</div></div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">How many total default boxes does SSD300 produce?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">300</button>
+          <button class="quiz-opt" onclick="answer(this,false)">2,000</button>
+          <button class="quiz-opt" onclick="answer(this,true)">8,732</button>
+          <button class="quiz-opt" onclick="answer(this,false)">100,000</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-5"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(4)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(6)">Next: YOLO vs SSD →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 6: YOLO vs SSD ====== -->
+    <div class="topic" id="topic-6">
+      <div class="topic-tag">Object Detection · 07</div>
+      <h1 class="topic-title">YOLO vs SSD vs Faster R-CNN</h1>
+
+      <div class="analogy">
+        <p>YOLO looks at the full image at once using a grid and is blazing fast. SSD uses multiple feature map scales, giving it better accuracy at different sizes. Faster R-CNN goes in two stages — first finding candidate regions, then classifying them — so it's more accurate but slower.</p>
+      </div>
+
+      <table class="compare-table">
+        <tr><th>Criterion</th><th>Faster R-CNN</th><th>YOLO v2</th><th>SSD300</th><th>SSD512</th></tr>
+        <tr><td>Architecture</td><td>Two-stage</td><td>One-stage</td><td>One-stage</td><td>One-stage</td></tr>
+        <tr><td>Speed (FPS)</td><td>7</td><td>67</td><td>59</td><td>22</td></tr>
+        <tr><td>mAP (VOC07)</td><td>73.2%</td><td>76.8%</td><td>77.2%</td><td>79.8%</td></tr>
+        <tr><td>Small Objects</td><td>Good</td><td>Weak</td><td>Moderate</td><td>Better</td></tr>
+        <tr><td>Large Objects</td><td>Good</td><td>Good</td><td>Good</td><td>Good</td></tr>
+      </table>
+
+      <h3>Key Differences</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">YOLO Strengths</div>
+          <div class="card-body">Grid-based, sees full image context per cell. Fastest inference. YOLO v8+ is anchor-free and even more flexible.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📐</div>
+          <div class="card-title">SSD Strengths</div>
+          <div class="card-body">Multi-scale feature maps, predefined anchors. Simpler training. Better at small objects (early layers = fine detail).</div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">Which model has the highest speed (FPS) according to the VOC07 comparison?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">SSD300 (59 FPS)</button>
+          <button class="quiz-opt" onclick="answer(this,true)">YOLO v2 (67 FPS)</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Faster R-CNN (7 FPS)</button>
+          <button class="quiz-opt" onclick="answer(this,false)">SSD512 (22 FPS)</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-6"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(5)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(7)">Next: GAN Basics →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 7: GAN ====== -->
+    <div class="topic" id="topic-7">
+      <div class="topic-tag">Generative Models · 08</div>
+      <h1 class="topic-title">GAN — Generative Adversarial Network</h1>
+
+      <div class="analogy">
+        <p>A GAN is like a <strong>forger vs. a detective</strong>. The forger (Generator G) keeps making fake paintings. The detective (Discriminator D) tries to spot the fakes. They train each other — the forger gets better at forging, the detective gets better at spotting — until the forgeries are indistinguishable from real art.</p>
+      </div>
+
+      <h3>Flip Cards — Test Your Memory</h3>
+      <div class="flipcard-grid">
+        <div class="flipcard" onclick="this.classList.toggle('flipped')">
+          <div class="flipcard-inner">
+            <div class="flipcard-front"><div class="icon">🎨</div>Generator G</div>
+            <div class="flipcard-back">Input: random noise z~N(0,I)<br>Output: fake image G(z)<br>Goal: fool D so D(G(z))=1<br>Architecture: FC→Reshape→ConvTranspose</div>
+          </div>
+        </div>
+        <div class="flipcard" onclick="this.classList.toggle('flipped')">
+          <div class="flipcard-inner">
+            <div class="flipcard-front"><div class="icon">🔍</div>Discriminator D</div>
+            <div class="flipcard-back">Input: real x or fake G(z)<br>Output: probability D(x)∈[0,1]<br>Goal: correctly classify real vs fake<br>Architecture: Conv→BN→LeakyReLU</div>
+          </div>
+        </div>
+        <div class="flipcard" onclick="this.classList.toggle('flipped')">
+          <div class="flipcard-inner">
+            <div class="flipcard-front"><div class="icon">📊</div>Loss Function</div>
+            <div class="flipcard-back">min_G max_D V(D,G)<br>D maximizes: log D(x) + log(1−D(G(z)))<br>G minimizes: log(1−D(G(z)))</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="formula">V(D,G) = 𝔼[log D(x)] + 𝔼[log(1 − D(G(z)))]</div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">What activation function does the Generator's final layer use, and why?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">Sigmoid — to output probabilities</button>
+          <button class="quiz-opt" onclick="answer(this,false)">ReLU — for non-linearity</button>
+          <button class="quiz-opt" onclick="answer(this,true)">Tanh — to output values in [-1, 1] matching normalized images</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Softmax — for class scores</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-7"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(6)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(8)">Next: GAN Variants →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 8: GAN VARIANTS ====== -->
+    <div class="topic" id="topic-8">
+      <div class="topic-tag">Generative Models · 09</div>
+      <h1 class="topic-title">GAN Variants</h1>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🏗️</div>
+          <div class="card-title">DCGAN</div>
+          <div class="card-body">Uses Conv/Transposed-Conv instead of FC layers. BatchNorm + LeakyReLU for stable training. Widely used baseline for image generation.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏷️</div>
+          <div class="card-title">cGAN</div>
+          <div class="card-body">Adds a label/condition to both G and D. Enables controlled generation — you can say "generate a dog" and it does exactly that.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">CycleGAN</div>
+          <div class="card-body">Image-to-image translation without paired data. Uses cycle consistency: A→B→A must reconstruct original. Example: horse ↔ zebra.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">✏️</div>
+          <div class="card-title">pix2pix</div>
+          <div class="card-body">Supervised translation with paired data. Uses GAN loss + L1 loss. Example: sketch → photo, edges → realistic image.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">💎</div>
+          <div class="card-title">StyleGAN</div>
+          <div class="card-body">Uses a mapping network and Adaptive Instance Normalization. Controls coarse (pose) to fine (texture) detail. Produces hyper-realistic faces.</div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">CycleGAN can translate between domains WITHOUT paired training data. What loss enforces consistency?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">L2 loss</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Cross-entropy loss</button>
+          <button class="quiz-opt" onclick="answer(this,true)">Cycle consistency loss (A→B→A ≈ A)</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Perceptual loss</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-8"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(7)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(9)">Next: VAE →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 9: VAE ====== -->
+    <div class="topic" id="topic-9">
+      <div class="topic-tag">Generative Models · 10</div>
+      <h1 class="topic-title">VAE — Variational Autoencoder</h1>
+
+      <div class="analogy">
+        <p>A regular autoencoder compresses images to a fixed point. A VAE instead compresses to a <strong>fuzzy region</strong> (a probability distribution). By sampling from that region, you can generate new, similar images. It's like describing a face not by exact coordinates but by "roughly this shape, give or take."</p>
+      </div>
+
+      <h3>Architecture Pipeline</h3>
+      <div class="pipeline">
+        <div class="pipe-box">Input Image x</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box highlight">Encoder<br>(Recognition Net)</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">μ and σ²</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Sample z<br>z = μ + σ·ε</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box highlight">Decoder<br>(Generative Net)</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">x̂ (output)</div>
+      </div>
+
+      <div class="formula">Reparameterization: z = μ + σ · ε,   ε ~ 𝒩(0, 1)</div>
+
+      <h3>Two-Part Loss</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🖼️</div>
+          <div class="card-title">Reconstruction Loss</div>
+          <div class="card-body">Ensures the output image looks like the input. Measures pixel-level similarity between x and x̂.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📐</div>
+          <div class="card-title">KL Divergence Loss</div>
+          <div class="card-body">Forces the latent distribution to be close to 𝒩(0,1). This makes the latent space smooth and enables interpolation.</div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">What is the purpose of the reparameterization trick in VAEs?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">To make the decoder deterministic</button>
+          <button class="quiz-opt" onclick="answer(this,true)">To allow gradients to flow through the sampling step during backpropagation</button>
+          <button class="quiz-opt" onclick="answer(this,false)">To remove the need for an encoder</button>
+          <button class="quiz-opt" onclick="answer(this,false)">To increase image resolution</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-9"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(8)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(10)">Next: Diffusion Models →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 10: DIFFUSION ====== -->
+    <div class="topic" id="topic-10">
+      <div class="topic-tag">Generative Models · 11</div>
+      <h1 class="topic-title">Diffusion Models</h1>
+
+      <div class="analogy">
+        <p>Imagine shredding a photo by adding sand grain by grain until you just have noise. A diffusion model <strong>learns to reverse this</strong> — starting from pure noise, it repeatedly removes a little sand until a clear image appears. Stable Diffusion does this in a compressed "latent space" for efficiency.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="step-num">→</div><div class="step-text"><strong>Forward Diffusion:</strong> Gradually add Gaussian noise to an image over T timesteps until it's pure noise.</div></div>
+        <div class="step"><div class="step-num">←</div><div class="step-text"><strong>Reverse Diffusion:</strong> A neural network (U-Net) learns to predict and remove noise step-by-step.</div></div>
+        <div class="step"><div class="step-num">🎲</div><div class="step-text"><strong>Generation:</strong> Start from random noise → iteratively denoise → realistic image.</div></div>
+      </div>
+
+      <h3>Stable Diffusion Pipeline</h3>
+      <div class="pipeline">
+        <div class="pipe-box highlight">Text Prompt</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">CLIP Text Encoder</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Cross-attention<br>in U-Net</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box highlight">Latent Space<br>(VAE compressed)</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">VAE Decoder</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">Final Image</div>
+      </div>
+
+      <h3>Evaluation Metrics</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📏</div>
+          <div class="card-title">PSNR</div>
+          <div class="card-body">Pixel-level similarity. Higher = better. Doesn't always match human perception.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">👁️</div>
+          <div class="card-title">SSIM</div>
+          <div class="card-body">Structural similarity — closer to human vision than PSNR. Measures luminance, contrast, structure.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <div class="card-title">FID</div>
+          <div class="card-body">Fréchet Inception Distance. Compares statistics (mean + covariance) of real vs. generated image features. Lower = better.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <div class="card-title">Inception Score</div>
+          <div class="card-body">Measures quality (high confidence per class) + diversity (varied class distribution). Higher = better.</div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">What does a lower FID score indicate?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">More diverse images</button>
+          <button class="quiz-opt" onclick="answer(this,true)">Generated images are statistically closer to real images</button>
+          <button class="quiz-opt" onclick="answer(this,false)">The model is faster</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Higher image resolution</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-10"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(9)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(11)">Next: Optical Flow →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 11: OPTICAL FLOW ====== -->
+    <div class="topic" id="topic-11">
+      <div class="topic-tag">Motion & Flow · 12</div>
+      <h1 class="topic-title">Optical Flow</h1>
+
+      <div class="analogy">
+        <p>Optical flow is like tracking where every raindrop on your windshield moves between two consecutive photos. For every pixel in frame t, you estimate a motion vector (u,v) showing where it went in frame t+1.</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📡</div>
+          <div class="card-title">What It Is</div>
+          <div class="card-body">A 2D vector field (u,v) representing apparent pixel motion between two frames. Caused by camera motion, object motion, or both.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌑</div>
+          <div class="card-title">Key Assumption</div>
+          <div class="card-body">Brightness Constancy: a pixel's intensity doesn't change as it moves. I(x,y,t) = I(x+u, y+v, t+1).</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">❓</div>
+          <div class="card-title">Aperture Problem</div>
+          <div class="card-body">One equation per pixel, two unknowns (u,v). You can't tell direction through a small window — need extra constraints.</div>
+        </div>
+      </div>
+
+      <h3>Optical Flow Equation</h3>
+      <div class="formula">Iₓ·u + Iᵧ·v + Iₜ = 0 &nbsp;&nbsp; (1 equation, 2 unknowns)</div>
+
+      <h3>Applications</h3>
+      <div class="card-grid">
+        <div class="card"><div class="card-icon">🎬</div><div class="card-title">Video Compression</div><div class="card-body">Encode only the motion, not full frames.</div></div>
+        <div class="card"><div class="card-icon">🤸</div><div class="card-title">Action Recognition</div><div class="card-body">Motion patterns reveal human activities.</div></div>
+        <div class="card"><div class="card-icon">🚗</div><div class="card-title">Autonomous Driving</div><div class="card-body">Estimate egomotion and obstacle motion.</div></div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">What is the "aperture problem" in optical flow?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">The camera aperture causes blur</button>
+          <button class="quiz-opt" onclick="answer(this,true)">One equation exists per pixel but two unknowns (u,v) — the system is underdetermined</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Flow can only be computed on edges</button>
+          <button class="quiz-opt" onclick="answer(this,false)">The algorithm is too slow for real-time use</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-11"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(10)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(12)">Next: Lucas-Kanade →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 12: LUCAS-KANADE ====== -->
+    <div class="topic" id="topic-12">
+      <div class="topic-tag">Motion & Flow · 13</div>
+      <h1 class="topic-title">Lucas-Kanade Optical Flow</h1>
+
+      <div class="analogy">
+        <p>LK says: "My pixel and all its neighbors moved together (spatial coherence)." By assuming a small patch moves as a rigid block, you get 25 equations (in a 5×5 window) for 2 unknowns — now you can solve it with least squares!</p>
+      </div>
+
+      <h3>The Math</h3>
+      <div class="formula">
+        Assume spatial coherence in a 5×5 window → 25 equations:<br><br>
+        A·d = b &nbsp;&nbsp;&nbsp; (25×2 matrix · 2×1 vector = 25×1 vector)<br><br>
+        Solution: d = (AᵀA)⁻¹ Aᵀ b
+      </div>
+
+      <h3>When Is It Solvable?</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">✅</div>
+          <div class="card-title">Corners work!</div>
+          <div class="card-body">AᵀA must be invertible. Both eigenvalues λ₁ and λ₂ must be large → this is exactly a corner! Connected to Harris corner detector.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">❌</div>
+          <div class="card-title">Edges fail</div>
+          <div class="card-body">λ₁ >> λ₂ → edge. One direction is ambiguous. Aperture problem persists.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">❌</div>
+          <div class="card-title">Flat regions fail</div>
+          <div class="card-body">Both eigenvalues near zero → no texture, no gradient information, cannot estimate flow.</div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">QUICK CHECK</div></div>
+        <div class="quiz-q">Lucas-Kanade works best on which type of image region?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">Flat, uniform regions</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Long edges</button>
+          <button class="quiz-opt" onclick="answer(this,true)">Corners (both eigenvalues of AᵀA are large)</button>
+          <button class="quiz-opt" onclick="answer(this,false)">Blurry regions</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-12"></div>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(11)">← Back</button>
+        <button class="btn btn-primary" onclick="goTo(13)">Next: FlowNet →</button>
+      </div>
+    </div>
+
+    <!-- ====== TOPIC 13: FLOWNET ====== -->
+    <div class="topic" id="topic-13">
+      <div class="topic-tag">Motion & Flow · 14</div>
+      <h1 class="topic-title">FlowNet — Deep Optical Flow</h1>
+
+      <div class="analogy">
+        <p>Traditional optical flow requires hand-crafted assumptions (brightness constancy, spatial coherence). FlowNet throws away the rulebook and just feeds a CNN two consecutive frames, letting it <strong>learn what motion looks like</strong> from millions of examples.</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔗</div>
+          <div class="card-title">FlowNetSimple (FlowNetS)</div>
+          <div class="card-body">Stacks both frames as a 6-channel tensor (3+3 RGB). Processes them jointly through a standard encoder-decoder CNN.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🧩</div>
+          <div class="card-title">FlowNetCorr (FlowNetC)</div>
+          <div class="card-body">Processes each image separately, then uses a <strong>correlation layer</strong> to explicitly match feature vectors at different locations.</div>
+        </div>
+      </div>
+
+      <h3>Impact & Legacy</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">First deep learning model to treat optical flow as supervised learning (2015).</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Proved CNNs can learn both feature representation and correspondence matching.</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Inspired PWC-Net, RAFT, and the entire modern deep flow estimation field.</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Applications: video analysis, robotics, autonomous driving.</div></div>
+      </div>
+
+      <div class="quiz-section">
+        <div class="quiz-header"><div class="quiz-label">FINAL CHECK</div></div>
+        <div class="quiz-q">What makes FlowNetCorr different from FlowNetSimple?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="answer(this,false)">It uses fewer layers</button>
+          <button class="quiz-opt" onclick="answer(this,false)">It only processes one frame at a time</button>
+          <button class="quiz-opt" onclick="answer(this,true)">It uses a correlation layer to explicitly compute matching between feature vectors from the two images</button>
+          <button class="quiz-opt" onclick="answer(this,false)">It requires no training data</button>
+        </div>
+        <div class="quiz-feedback" id="qfb-13"></div>
+      </div>
+
+      <div style="margin-top:2rem; background: linear-gradient(135deg, rgba(0,229,255,0.08), rgba(163,255,75,0.06)); border: 1px solid rgba(0,229,255,0.3); border-radius: 14px; padding: 1.5rem; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎉</div>
+        <div style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem;">You've covered all 14 topics!</div>
+        <div style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem;">Final Score: <span id="final-score" style="color: var(--accent3); font-weight: 700;"></span></div>
+        <button class="btn btn-primary" onclick="restart()">🔄 Start Over</button>
+      </div>
+
+      <div class="topic-nav">
+        <button class="btn" onclick="goTo(12)">← Back</button>
+        <div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const TOTAL_TOPICS = 14;
+  let visited = new Set([0]);
+  let scores = { correct: 0, total: 0 };
+  let answered = new Set();
+
+  const feedbacks = {
+    correct: [
+      "Exactly right! You've got it.",
+      "Correct! That's the key insight.",
+      "Spot on! Great understanding.",
+      "Perfect! Move on with confidence.",
+    ],
+    wrong: [
+      "Not quite — check the explanation above.",
+      "Close, but re-read the section and try again.",
+      "Incorrect. Review the key concept and it'll click!",
+    ]
+  };
+
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function answer(btn, correct) {
+    const topic = btn.closest('.topic');
+    const topicId = parseInt(topic.id.split('-')[1]);
+    if (answered.has(topicId)) return;
+    answered.add(topicId);
+
+    scores.total++;
+    if (correct) {
+      scores.correct++;
+      btn.classList.add('correct');
+    } else {
+      btn.classList.add('wrong');
+      // mark correct answer
+      const opts = topic.querySelectorAll('.quiz-opt');
+      opts.forEach(o => {
+        if (o.onclick.toString().includes('true')) o.classList.add('correct');
+      });
+    }
+    topic.querySelectorAll('.quiz-opt').forEach(o => o.disabled = true);
+
+    const fb = topic.querySelector('[id^="qfb-"]');
+    if (fb) {
+      fb.textContent = correct ? rand(feedbacks.correct) : rand(feedbacks.wrong);
+      fb.style.color = correct ? 'var(--accent3)' : 'var(--accent2)';
+    }
+    updateScore();
+  }
+
+  function goTo(idx) {
+    document.querySelectorAll('.topic').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach((s,i) => {
+      s.classList.toggle('active', i === idx);
+    });
+    document.getElementById('topic-' + idx).classList.add('active');
+    visited.add(idx);
+
+    // mark visited in sidebar
+    document.querySelectorAll('.sidebar-item').forEach((s, i) => {
+      if (visited.has(i) && i !== idx) s.classList.add('done');
+    });
+
+    updateProgress();
+    if (idx === 13) {
+      document.getElementById('final-score').textContent =
+        scores.correct + '/' + scores.total + ' correct';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateProgress() {
+    const pct = Math.round((visited.size / TOTAL_TOPICS) * 100);
+    document.getElementById('fill').style.width = pct + '%';
+    document.getElementById('pct').textContent = pct + '%';
+  }
+
+  function updateScore() {
+    document.getElementById('score').textContent = scores.correct;
+    document.getElementById('total').textContent = scores.total;
+  }
+
+  function restart() {
+    visited = new Set([0]);
+    scores = { correct: 0, total: 0 };
+    answered = new Set();
+    document.querySelectorAll('.quiz-opt').forEach(o => {
+      o.classList.remove('correct', 'wrong');
+      o.disabled = false;
+    });
+    document.querySelectorAll('[id^="qfb-"]').forEach(fb => {
+      fb.textContent = '';
+    });
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('done'));
+    updateScore();
+    goTo(0);
+  }
+
+  updateProgress();
+</script>
+</body>
+</html>
